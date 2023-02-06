@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:PdfConverter"
+             xmlns:syncfusion="clr-namespace:Syncfusion.Maui.PdfViewer;assembly=Syncfusion.Maui.PdfViewer"
+             x:Class="PdfConverter.MainPage"
+             x:Name="MainPageXaml">
+    <ScrollView>
+        <VerticalStackLayout
+            Spacing="25"
+            Padding="30,0"
+            VerticalOptions="Center">
+
+            <Grid>
+       
+                <syncfusion:SfPdfViewer x:Name="PdfViewer"
+                               DocumentSource="{Binding ImageData}"
+                               SemanticProperties.Description="Image source"                               
+                               HeightRequest="600"
+                               BackgroundColor="{AppThemeBinding Light=Grey, Dark=Black}   ">
+                </syncfusion:SfPdfViewer>
+                <Label Text="{Binding Source={Reference PdfViewer}, Path=PageNumber}"
+                       FontSize="Header"/>
+            </Grid>
+            
+
+
+            <Entry Text="{Binding StartPage}"
+                   VerticalOptions="Start"
+                   Keyboard="Numeric"/>
+            <Entry Text="{Binding LastPage}"
+                   VerticalOptions="Start"
+                   Keyboard="Numeric"/>
+
+            <Button
+                x:Name="CounterBtn"
+                Text="Pick file"
+                SemanticProperties.Hint="Pick file"
+                Command="{Binding OnFileClickedCommand}"
+                HorizontalOptions="FillAndExpand" />
+
+            <Button
+                Text="Save"
+                SemanticProperties.Hint="Save file"
+                Command="{Binding OnSaveClickedCommand}"
+                HorizontalOptions="FillAndExpand" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
