@@ -77,7 +77,10 @@ namespace PdfConverter
         private async Task OnFileClicked()
         {
             FileData = await pdfService.PickFile();
-            ImageData = await FileData.OpenReadAsync();
+            if(FileData != null)
+            {
+                ImageData = await FileData.OpenReadAsync();
+            }
 
             ((Command)OnSaveClickedCommand).ChangeCanExecute();
         }
