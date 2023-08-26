@@ -4,25 +4,59 @@
              xmlns:local="clr-namespace:PdfConverter"
              xmlns:syncfusion="clr-namespace:Syncfusion.Maui.PdfViewer;assembly=Syncfusion.Maui.PdfViewer"
              x:Class="PdfConverter.MainPage"
-             x:Name="MainPageXaml">
+             x:Name="MainPageXaml"
+             x:DataType="local:MainPageViewModel">
     <ScrollView>
         <VerticalStackLayout
             Spacing="25"
             Padding="30,0"
             VerticalOptions="Center">
 
-            <Grid>
-       
-                <syncfusion:SfPdfViewer x:Name="PdfViewer"
-                               DocumentSource="{Binding ImageData}"
-                               SemanticProperties.Description="Image source"                               
-                               HeightRequest="600"
-                               BackgroundColor="{AppThemeBinding Light=Grey, Dark=Black}   ">
+            <Grid ColumnDefinitions="Auto,*"
+                  RowDefinitions="*">
+
+                <Grid RowDefinitions="Auto,Auto,Auto"
+                      Grid.Column="0">
+                    <Label x:Name="NumberPageLabel"
+                        Grid.Row="0"
+                        Text="{Binding CurrentPageNumber, Mode=TwoWay}"
+                        FontSize="Header"/>
+                    <HorizontalStackLayout Grid.Row="1">
+                        <Label                        
+                            FontSize="Large"
+                            Text="{Binding CurrentPageWidth}"/>
+                        <Label Text="X"
+                               FontSize="Large"
+                               VerticalOptions="Center"/>
+                        <Label 
+                            FontSize="Large"
+                            Text="{Binding CurrentPageHeight}"/>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Grid.Row="2">
+                        <Entry                        
+                            FontSize="Large"
+                            Text="{Binding CurrentPageNewWidth}"/>
+                        <Label Text="X"
+                               FontSize="Large"
+                               VerticalOptions="Center"/>
+                        <Entry 
+                            FontSize="Large"
+                            Text="{Binding CurrentPageNewHeight}"/>
+                    </HorizontalStackLayout>
+                </Grid>
+
+
+                <syncfusion:SfPdfViewer                                       
+                    x:Name="PdfViewer"      
+                    PageNumber="{Binding Source={Reference NumberPageLabel}, Path=Text, Mode=OneWayToSource}"
+                    Grid.Column="1"
+                    HeightRequest="600"
+                    DocumentSource="{Binding ImageData}"
+                    SemanticProperties.Description="Image source"                               
+                    BackgroundColor="{AppThemeBinding Light=Grey, Dark=Black}">
                 </syncfusion:SfPdfViewer>
-                <Label Text="{Binding Source={Reference PdfViewer}, Path=PageNumber}"
-                       FontSize="Header"/>
             </Grid>
-            
+
 
 
             <Entry Text="{Binding StartPage}"
@@ -36,13 +70,13 @@
                 x:Name="CounterBtn"
                 Text="Pick file"
                 SemanticProperties.Hint="Pick file"
-                Command="{Binding OnFileClickedCommand}"
+                Command="{Binding FileClickedCommand}"
                 HorizontalOptions="FillAndExpand" />
 
             <Button
                 Text="Save"
                 SemanticProperties.Hint="Save file"
-                Command="{Binding OnSaveClickedCommand}"
+                Command="{Binding SaveClickedCommand}"
                 HorizontalOptions="FillAndExpand" />
 
         </VerticalStackLayout>

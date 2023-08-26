@@ -1,149 +1,115 @@
-﻿using Microsoft.Maui.Graphics.Text;
-using Microsoft.Maui.Storage;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using PdfConverter.Model;
 using PdfConverter.Services;
-using PdfConverter.Services.FolderPicker;
-using PdfSharp;
-using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace PdfConverter
 {
-    public class MainPageViewModel : INotifyPropertyChanged
+    public partial class MainPageViewModel : ObservableObject
     {
+        [ObservableProperty]
         Stream imageData;
-        public Stream ImageData
-        {
-            get { return imageData; }
-            set { SetProperty(ref imageData, value); }
-        }
 
-        string startPage = "1";
-        public string StartPage
-        {
-            get { return startPage; }
-            set
-            {
-                SetProperty(ref startPage, value);
-                ((Command)OnSaveClickedCommand).ChangeCanExecute();
-            }
-        }
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveClickedCommand))]
+        int startPage = 1;
 
-        string lastPage;
-        public string LastPage
-        {
-            get { return lastPage; }
-            set
-            {
-                SetProperty(ref lastPage, value);
-                ((Command)OnSaveClickedCommand).ChangeCanExecute();
-            }
-        }
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveClickedCommand))]
+        int lastPage;
 
-        public ICommand OnFileClickedCommand => new Command(async () => await OnFileClicked());
+        [ObservableProperty]
+        int currentPageNumber;
 
-        private ICommand onSaveClickedCommand;
-        public ICommand OnSaveClickedCommand => onSaveClickedCommand ??= new Command(async () => await OnSaveClicked(), () => IsValid());
+        [ObservableProperty]
+        double currentPageWidth;
 
-        private bool IsValid()
-        {
-            return FileData != null
-              && int.TryParse(StartPage, out int startIndex)
-              && int.TryParse(LastPage, out int lastIndex);
-        }
+        [ObservableProperty]
+        double currentPageHeight;
+
+        [ObservableProperty]
+        double currentPageNewWidth;
+
+        [ObservableProperty]
+        double currentPageNewHeight;
+
 
         FileResult FileData;
+        List<PageDataDto> PageDataList = new();
 
-        readonly IFolderPicker folderPicker;
+
         readonly IPdfService pdfService;
         public MainPageViewModel(
-          IPdfService pdfService
-          , IFolderPicker folderPicker)
+          IPdfService pdfService)
         {
             this.pdfService = pdfService;
-            this.folderPicker = folderPicker;
-
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
         }
 
-        private async Task OnFileClicked()
+        [RelayCommand]
+        private async Task FileClicked()
         {
             FileData = await pdfService.PickFile();
-            if(FileData != null)
+            if (FileData != null)
             {
-                ImageData = await FileData.OpenReadAsync();
+                var imageData = await FileData.OpenReadAsync();
+                using var document = PdfReader.Open(imageData);
+
+                PageDataList = new List<PageDataDto>();
+                foreach (var page in document.Pages)
+                {
+                    PageDataList.Add(new PageDataDto()
+                    {
+                        Width = page.Width,
+                        Height = page.Height,
+                        NewWidth = page.Width,
+                        NewHeight = page.Height
+                    });
+                }
+
+                ImageData = imageData;
             }
 
-            ((Command)OnSaveClickedCommand).ChangeCanExecute();
+            SaveClickedCommand.NotifyCanExecuteChanged();
         }
 
-        private async Task OnSaveClicked()
+
+
+
+        [RelayCommand(CanExecute = nameof(IsValid))]
+        private async Task SaveClicked() => 
+            await pdfService.SaveFile(StartPage, LastPage, FileData, PageDataList);
+
+
+        private bool IsValid() =>
+            FileData != null
+            && StartPage != 0
+            && LastPage != 0;
+
+
+        partial void OnCurrentPageNumberChanged(int oldValue, int newValue)
         {
-            if (int.TryParse(StartPage, out int startNumber)
-              && int.TryParse(LastPage, out int lastNumber))
+            if (newValue <= PageDataList.Count())
             {
-                try
-                {
-                    var document = PdfReader.Open(await FileData.OpenReadAsync());
-
-                    for (int i = document.Pages.Count - 1; i >= lastNumber; i--)
-                    {
-                        document.Pages.RemoveAt(i);
-                    }
-
-
-                    for (int i = startNumber - 1; i > 0; i--)
-                    {
-                        document.Pages.RemoveAt(i);
-                    }
-
-                    var folderPath = await folderPicker.PickFolder();
-                    var file = Path.Combine(folderPath, FileData.FileName);
-
-                    document.Save(file);
-                    document.Close();
-
-                    await App.Current.MainPage.DisplayAlert("Success", "Pdf was successfully created.", "OK");
-                }
-                catch (Exception ex)
-                {
-
-                }
+                CurrentPageHeight = PageDataList[newValue - 1].Height;
+                CurrentPageWidth = PageDataList[newValue - 1].Width;
+                CurrentPageNewHeight = PageDataList[newValue - 1].NewHeight;
+                CurrentPageNewWidth = PageDataList[newValue - 1].NewWidth;
             }
         }
 
-        #region INotifyPropertyChanged
-        protected bool SetProperty<T>(ref T backingStore, T value,
-            [CallerMemberName] string propertyName = "",
-            Action onChanged = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(backingStore, value))
-                return false;
 
-            backingStore = value;
-            onChanged?.Invoke();
-            OnPropertyChanged(propertyName);
-            return true;
+        partial void OnCurrentPageNewHeightChanged(double oldValue, double newValue)
+        {
+            PageDataList[CurrentPageNumber - 1].NewHeight = newValue;
         }
 
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        partial void OnCurrentPageNewWidthChanged(double oldValue, double newValue)
         {
-            var changed = PropertyChanged;
-            if (changed == null)
-                return;
-
-            changed.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PageDataList[CurrentPageNumber - 1].NewWidth = newValue;
         }
-        #endregion
+
     }
 }
