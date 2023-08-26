@@ -7,13 +7,14 @@
              x:Name="MainPageXaml"
              x:DataType="local:MainPageViewModel">
     <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
+        <Grid
+            RowDefinitions="*,Auto"
+            RowSpacing="25"
+            Margin="25">
 
-            <Grid ColumnDefinitions="Auto,*"
-                  RowDefinitions="*">
+            <Grid ColumnDefinitions="2*,8*"
+                  RowDefinitions="*"
+                  Grid.Row="0">
 
                 <Grid RowDefinitions="Auto,Auto,Auto"
                       Grid.Column="0">
@@ -35,13 +36,15 @@
                     <HorizontalStackLayout Grid.Row="2">
                         <Entry                        
                             FontSize="Large"
-                            Text="{Binding CurrentPageNewWidth}"/>
+                            Text="{Binding CurrentPageNewWidth}"
+                            MaxLength="6"/>
                         <Label Text="X"
                                FontSize="Large"
                                VerticalOptions="Center"/>
                         <Entry 
                             FontSize="Large"
-                            Text="{Binding CurrentPageNewHeight}"/>
+                            Text="{Binding CurrentPageNewHeight}"
+                            MaxLength="6"/>
                     </HorizontalStackLayout>
                 </Grid>
 
@@ -50,7 +53,6 @@
                     x:Name="PdfViewer"      
                     PageNumber="{Binding Source={Reference NumberPageLabel}, Path=Text, Mode=OneWayToSource}"
                     Grid.Column="1"
-                    HeightRequest="600"
                     DocumentSource="{Binding ImageData}"
                     SemanticProperties.Description="Image source"                               
                     BackgroundColor="{AppThemeBinding Light=Grey, Dark=Black}">
@@ -58,28 +60,30 @@
             </Grid>
 
 
+            <VerticalStackLayout 
+                Grid.Row="1"
+                Spacing="10">
+                <Entry Text="{Binding StartPage}"
+                       VerticalOptions="Start"
+                       Keyboard="Numeric"/>
+                <Entry Text="{Binding LastPage}"
+                       VerticalOptions="Start"
+                       Keyboard="Numeric"/>
 
-            <Entry Text="{Binding StartPage}"
-                   VerticalOptions="Start"
-                   Keyboard="Numeric"/>
-            <Entry Text="{Binding LastPage}"
-                   VerticalOptions="Start"
-                   Keyboard="Numeric"/>
+                <Button
+                    x:Name="CounterBtn"
+                    Text="Pick file"
+                    SemanticProperties.Hint="Pick file"
+                    Command="{Binding FileClickedCommand}"
+                    HorizontalOptions="FillAndExpand" />
 
-            <Button
-                x:Name="CounterBtn"
-                Text="Pick file"
-                SemanticProperties.Hint="Pick file"
-                Command="{Binding FileClickedCommand}"
-                HorizontalOptions="FillAndExpand" />
-
-            <Button
-                Text="Save"
-                SemanticProperties.Hint="Save file"
-                Command="{Binding SaveClickedCommand}"
-                HorizontalOptions="FillAndExpand" />
-
-        </VerticalStackLayout>
+                <Button
+                    Text="Save"
+                    SemanticProperties.Hint="Save file"
+                    Command="{Binding SaveClickedCommand}"
+                    HorizontalOptions="FillAndExpand" />
+            </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 
 </ContentPage>

@@ -1,5 +1,7 @@
 ﻿using PdfConverter.Model;
 using PdfConverter.Services.FolderPicker;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using Syncfusion.Maui.DataSource.Extensions;
 using System;
@@ -55,8 +57,17 @@ namespace PdfConverter.Services
                     int index = 0;
                     foreach (var pageData in pdfData)
                     {
-                        document.Pages[index].Width = pageData.NewWidth;
-                        document.Pages[index].Height = pageData.NewHeight;
+                        //Add width at right of the page
+                        var page = document.Pages[index];
+                        page.Width = pageData.NewWidth;
+
+                        //Add height at top of the page
+                        //page.Height = pageData.NewHeight;
+
+                        // Add height at bottom of the page
+                        XRect rect = new XRect(0, -pageData.NewHeight, page.Width, page.Height + pageData.NewHeight);
+                        page.MediaBox = new PdfRectangle(rect);
+
                         index++;
                     }
                 }

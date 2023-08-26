@@ -58,6 +58,9 @@ namespace PdfConverter
                 using var document = PdfReader.Open(imageData);
 
                 PageDataList = new List<PageDataDto>();
+                StartPage = 1;
+                LastPage = document.PageCount;
+
                 foreach (var page in document.Pages)
                 {
                     PageDataList.Add(new PageDataDto()
@@ -69,6 +72,7 @@ namespace PdfConverter
                     });
                 }
 
+                ImageData?.Dispose();
                 ImageData = imageData;
             }
 
@@ -91,6 +95,13 @@ namespace PdfConverter
 
         partial void OnCurrentPageNumberChanged(int oldValue, int newValue)
         {
+            if (PageDataList == null
+                || PageDataList.Count() == 0
+                || newValue < 1)
+            {
+                return;
+            }
+
             if (newValue <= PageDataList.Count())
             {
                 CurrentPageHeight = PageDataList[newValue - 1].Height;
@@ -103,13 +114,28 @@ namespace PdfConverter
 
         partial void OnCurrentPageNewHeightChanged(double oldValue, double newValue)
         {
+            if (PageDataList == null
+                || PageDataList.Count() == 0
+                || newValue < 1)
+            {
+                return;
+            }
+
             PageDataList[CurrentPageNumber - 1].NewHeight = newValue;
         }
 
         partial void OnCurrentPageNewWidthChanged(double oldValue, double newValue)
         {
+            if (PageDataList == null 
+                || PageDataList.Count() == 0 
+                || newValue < 1)
+            {
+                return;
+            }
+
             PageDataList[CurrentPageNumber - 1].NewWidth = newValue;
         }
+
 
     }
 }
