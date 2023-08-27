@@ -65,7 +65,7 @@ namespace PdfConverter.Services
                         //page.Height = pageData.NewHeight;
 
                         // Add height at bottom of the page
-                        XRect rect = new XRect(0, -pageData.NewHeight, page.Width, page.Height + pageData.NewHeight);
+                        XRect rect = new XRect(0, page.Height - pageData.NewHeight, page.Width, pageData.NewHeight);
                         page.MediaBox = new PdfRectangle(rect);
 
                         index++;
