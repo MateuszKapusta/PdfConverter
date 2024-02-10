@@ -65,6 +65,7 @@
 
 
                 <syncfusion:SfPdfViewer x:Name="PdfViewer"
+                                        HeightRequest="672"
                                         PageNumber="{Binding Source={Reference NumberPageLabel}, Path=Text, Mode=OneWayToSource}"
                                         Grid.Column="1"
                                         DocumentSource="{Binding ImageData}"
