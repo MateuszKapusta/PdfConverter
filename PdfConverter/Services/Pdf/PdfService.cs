@@ -59,13 +59,13 @@ namespace PdfConverter.Services
                     {
                         //Add width at right of the page
                         var page = document.Pages[index];
-                        page.Width = pageData.NewWidth;
+                        page.Width = pageData.NewPageSize.Width;
 
                         //Add height at top of the page
                         //page.Height = pageData.NewHeight;
 
                         // Add height at bottom of the page
-                        XRect rect = new XRect(0, page.Height - pageData.NewHeight, page.Width, pageData.NewHeight);
+                        XRect rect = new XRect(0, page.Height - pageData.NewPageSize.Height, page.Width, pageData.NewPageSize.Height);
                         page.MediaBox = new PdfRectangle(rect);
 
                         index++;
