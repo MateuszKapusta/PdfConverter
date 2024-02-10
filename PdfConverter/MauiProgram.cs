@@ -2,6 +2,7 @@
 using Syncfusion.Maui.Core.Hosting;
 using PdfConverter.Services.FolderPicker;
 using System.Runtime.CompilerServices;
+using CommunityToolkit.Maui;
 
 namespace PdfConverter;
 
@@ -12,7 +13,8 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
-			.RegisterAppServices()
+            .UseMauiCommunityToolkit()
+            .RegisterAppServices()
 			.RegisterViewModels()
 			.RegisterPages()
 			.ConfigureSyncfusionCore()

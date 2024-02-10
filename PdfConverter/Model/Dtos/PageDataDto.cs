@@ -8,10 +8,7 @@ namespace PdfConverter.Model
 {
     public class PageDataDto
     {
-        public double Width { get; set; }
-        public double Height { get; set; }
-
-        public double NewWidth { get; set; }
-        public double NewHeight { get; set; }
+        public PageSizeDto OldPageSize { get; set; }
+        public PageSizeDto NewPageSize { get; set; }
     }
 }

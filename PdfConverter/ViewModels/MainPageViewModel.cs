@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Maui.Controls.PlatformConfiguration.macOSSpecific;
+using Newtonsoft.Json;
 using PdfConverter.Model;
 using PdfConverter.Services;
 using PdfSharp.Pdf.IO;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace PdfConverter
@@ -21,6 +24,12 @@ namespace PdfConverter
         int lastPage;
 
         [ObservableProperty]
+        ObservableCollection<PageSizeDto> lastSizes = new ObservableCollection<PageSizeDto>();
+
+        [ObservableProperty]
+        PageSizeDto sizePicked;
+
+        [ObservableProperty]
         int currentPageNumber;
 
         [ObservableProperty]
@@ -35,17 +44,35 @@ namespace PdfConverter
         [ObservableProperty]
         double currentPageNewHeight;
 
-
         FileResult FileData;
         List<PageDataDto> PageDataList = new();
 
-
         readonly IPdfService pdfService;
+
         public MainPageViewModel(
           IPdfService pdfService)
         {
             this.pdfService = pdfService;
             Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            InitializeLastSizeLiast();
+        }
+
+        private void InitializeLastSizeLiast()
+        {
+            try
+            {
+                var lastSizes = Preferences.Default.Get(AppConst.LastSizesKey, "");
+
+                if (!string.IsNullOrEmpty(lastSizes))
+                {
+                    var savedSizes = JsonConvert.DeserializeObject<ObservableCollection<PageSizeDto>>(lastSizes);
+                    LastSizes =new ObservableCollection<PageSizeDto>(savedSizes.Take(10));
+                }
+            }
+            catch
+            {
+
+            }
         }
 
         [RelayCommand]
@@ -65,14 +92,13 @@ namespace PdfConverter
                 {
                     PageDataList.Add(new PageDataDto()
                     {
-                        Width = page.Width,
-                        Height = page.Height,
-                        NewWidth = page.Width,
-                        NewHeight = page.Height
+                        OldPageSize = new PageSizeDto() { Height = page.Height, Width = page.Width },
+                        NewPageSize = new PageSizeDto() { Height = page.Height, Width = page.Width }
                     });
                 }
 
                 ImageData?.Dispose();
+                ImageData = null;
                 ImageData = imageData;
             }
 
@@ -83,9 +109,47 @@ namespace PdfConverter
 
 
         [RelayCommand(CanExecute = nameof(IsValid))]
-        private async Task SaveClicked() => 
+        private async Task SaveClicked()
+        {
+            if (PageDataList == null || !PageDataList.Any())
+            {
+                return;
+            }
+
             await pdfService.SaveFile(StartPage, LastPage, FileData, PageDataList);
 
+            List<PageSizeDto> newSizes = new List<PageSizeDto>();
+            for (int i = StartPage; i <= LastPage; i++)
+            {
+                try
+                {
+                    if (!PageDataList[i - 1].OldPageSize.SameInteger(PageDataList[i - 1].NewPageSize))
+                    {
+                        newSizes.Add(PageDataList[i - 1].NewPageSize);
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+
+            if (newSizes.Any())
+            {
+                newSizes.ForEach(x =>
+                {
+                    LastSizes.Insert(0,x);
+                    if (LastSizes.Count > 10)
+                    {
+                        LastSizes.RemoveAt(LastSizes.Count-1);
+                    }
+                });
+
+                var sizeLiast = JsonConvert.SerializeObject(LastSizes);
+                Preferences.Default.Set(AppConst.LastSizesKey, sizeLiast);
+            }
+
+        }
 
         private bool IsValid() =>
             FileData != null
@@ -104,10 +168,10 @@ namespace PdfConverter
 
             if (newValue <= PageDataList.Count())
             {
-                CurrentPageHeight = PageDataList[newValue - 1].Height;
-                CurrentPageWidth = PageDataList[newValue - 1].Width;
-                CurrentPageNewHeight = PageDataList[newValue - 1].NewHeight;
-                CurrentPageNewWidth = PageDataList[newValue - 1].NewWidth;
+                CurrentPageHeight = PageDataList[newValue - 1].OldPageSize.Height;
+                CurrentPageWidth = PageDataList[newValue - 1].OldPageSize.Width;
+                CurrentPageNewHeight = PageDataList[newValue - 1].NewPageSize.Height;
+                CurrentPageNewWidth = PageDataList[newValue - 1].NewPageSize.Width;
             }
         }
 
@@ -121,19 +185,34 @@ namespace PdfConverter
                 return;
             }
 
-            PageDataList[CurrentPageNumber - 1].NewHeight = newValue;
+            PageDataList[CurrentPageNumber - 1].NewPageSize.Height = newValue;
         }
 
         partial void OnCurrentPageNewWidthChanged(double oldValue, double newValue)
         {
-            if (PageDataList == null 
-                || PageDataList.Count() == 0 
+            if (PageDataList == null
+                || PageDataList.Count() == 0
                 || newValue < 1)
             {
                 return;
             }
 
-            PageDataList[CurrentPageNumber - 1].NewWidth = newValue;
+            PageDataList[CurrentPageNumber - 1].NewPageSize.Width = newValue;
+        }
+
+        [RelayCommand]
+        private async Task PickedSize()
+        {
+            if (SizePicked == null)
+            {
+                return;
+            }
+
+            CurrentPageNewHeight = SizePicked.Height;
+            CurrentPageNewWidth = SizePicked.Width;
+
+            await Task.Delay(100);
+            SizePicked = null;
         }
 
 

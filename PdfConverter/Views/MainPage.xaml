@@ -2,86 +2,97 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:PdfConverter"
+             xmlns:model="clr-namespace:PdfConverter.Model"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:syncfusion="clr-namespace:Syncfusion.Maui.PdfViewer;assembly=Syncfusion.Maui.PdfViewer"
              x:Class="PdfConverter.MainPage"
              x:Name="MainPageXaml"
              x:DataType="local:MainPageViewModel">
     <ScrollView>
-        <Grid
-            RowDefinitions="*,Auto"
-            RowSpacing="25"
-            Margin="25">
+        <Grid RowDefinitions="*,Auto"
+              RowSpacing="25"
+              Margin="25">
 
             <Grid ColumnDefinitions="2*,8*"
                   RowDefinitions="*"
                   Grid.Row="0">
 
-                <Grid RowDefinitions="Auto,Auto,Auto"
+                <Grid RowDefinitions="Auto,Auto,Auto,*"
                       Grid.Column="0">
                     <Label x:Name="NumberPageLabel"
-                        Grid.Row="0"
-                        Text="{Binding CurrentPageNumber, Mode=TwoWay}"
-                        FontSize="Header"/>
+                           Grid.Row="0"
+                           Text="{Binding CurrentPageNumber, Mode=TwoWay}"
+                           FontSize="Header" />
                     <HorizontalStackLayout Grid.Row="1">
-                        <Label                        
-                            FontSize="Large"
-                            Text="{Binding CurrentPageWidth}"/>
+                        <Label FontSize="Large"
+                               Text="{Binding CurrentPageWidth}" />
                         <Label Text="X"
                                FontSize="Large"
-                               VerticalOptions="Center"/>
-                        <Label 
-                            FontSize="Large"
-                            Text="{Binding CurrentPageHeight}"/>
+                               VerticalOptions="Center" />
+                        <Label FontSize="Large"
+                               Text="{Binding CurrentPageHeight}" />
                     </HorizontalStackLayout>
                     <HorizontalStackLayout Grid.Row="2">
-                        <Entry                        
-                            FontSize="Large"
-                            Text="{Binding CurrentPageNewWidth}"
-                            MaxLength="6"/>
+                        <Entry FontSize="Large"
+                               Text="{Binding CurrentPageNewWidth}"
+                               MaxLength="6" />
                         <Label Text="X"
                                FontSize="Large"
-                               VerticalOptions="Center"/>
-                        <Entry 
-                            FontSize="Large"
-                            Text="{Binding CurrentPageNewHeight}"
-                            MaxLength="6"/>
+                               VerticalOptions="Center" />
+                        <Entry FontSize="Large"
+                               Text="{Binding CurrentPageNewHeight}"
+                               MaxLength="6" />
                     </HorizontalStackLayout>
+                    <CollectionView Grid.Row="3"
+                                    ItemsSource="{Binding LastSizes}"
+                                    SelectedItem="{Binding SizePicked}"
+                                    SelectionMode="Single"
+                                    SelectionChangedCommand="{Binding PickedSizeCommand}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="model:PageSizeDto">
+                                <HorizontalStackLayout>
+                                    <Label Text="{Binding Width}"
+                                           FontSize="Medium" />
+                                    <Label Text="X"
+                                           FontSize="Medium" />
+                                    <Label Text="{Binding Height}"
+                                           FontSize="Medium" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </Grid>
 
 
-                <syncfusion:SfPdfViewer                                       
-                    x:Name="PdfViewer"      
-                    PageNumber="{Binding Source={Reference NumberPageLabel}, Path=Text, Mode=OneWayToSource}"
-                    Grid.Column="1"
-                    DocumentSource="{Binding ImageData}"
-                    SemanticProperties.Description="Image source"                               
-                    BackgroundColor="{AppThemeBinding Light=Grey, Dark=Black}">
+                <syncfusion:SfPdfViewer x:Name="PdfViewer"
+                                        PageNumber="{Binding Source={Reference NumberPageLabel}, Path=Text, Mode=OneWayToSource}"
+                                        Grid.Column="1"
+                                        DocumentSource="{Binding ImageData}"
+                                        SemanticProperties.Description="Image source"
+                                        BackgroundColor="{AppThemeBinding Light=Grey, Dark=Black}">
                 </syncfusion:SfPdfViewer>
             </Grid>
 
 
-            <VerticalStackLayout 
-                Grid.Row="1"
-                Spacing="10">
+            <VerticalStackLayout Grid.Row="1"
+                                 Spacing="10">
                 <Entry Text="{Binding StartPage}"
                        VerticalOptions="Start"
-                       Keyboard="Numeric"/>
+                       Keyboard="Numeric" />
                 <Entry Text="{Binding LastPage}"
                        VerticalOptions="Start"
-                       Keyboard="Numeric"/>
+                       Keyboard="Numeric" />
 
-                <Button
-                    x:Name="CounterBtn"
-                    Text="Pick file"
-                    SemanticProperties.Hint="Pick file"
-                    Command="{Binding FileClickedCommand}"
-                    HorizontalOptions="FillAndExpand" />
+                <Button x:Name="CounterBtn"
+                        Text="Pick file"
+                        SemanticProperties.Hint="Pick file"
+                        Command="{Binding FileClickedCommand}"
+                        HorizontalOptions="FillAndExpand" />
 
-                <Button
-                    Text="Save"
-                    SemanticProperties.Hint="Save file"
-                    Command="{Binding SaveClickedCommand}"
-                    HorizontalOptions="FillAndExpand" />
+                <Button Text="Save"
+                        SemanticProperties.Hint="Save file"
+                        Command="{Binding SaveClickedCommand}"
+                        HorizontalOptions="FillAndExpand" />
             </VerticalStackLayout>
         </Grid>
     </ScrollView>
